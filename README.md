@@ -1,5 +1,6 @@
 # SWE-Sumerians
 A repository for creating a simple DMS software
+
 ```mermaid
 flowchart TD;
     A[User Boots Program] -->|Inserts username| B(Web App Interface Opens);
