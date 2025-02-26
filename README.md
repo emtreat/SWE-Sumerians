@@ -15,7 +15,7 @@ flowchart TD;
     G -->|Web Interface Updated| C;
 ```
 
-## File structure for the project
+## File Structure for the Project
 
 go.main is the root of the project which coordinates the UI (a react app) with the assorted types of RESTful API calls needed (all of which are put into a folder rather than having individual folders for handlers, models, etc. 
 
@@ -29,3 +29,12 @@ flowchart TD
     C-->G(utils)
     C-->H(handlers)
 ```
+
+## Tools That We are Using
+
+### Backend
+Make sure if you are working on the backend you have these installed. 
+
+- Go version 1.24
+- Fiber: https://github.com/gofiber/fiber
+
