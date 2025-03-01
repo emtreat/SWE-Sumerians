@@ -9,18 +9,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 
-	// "github.com/emtreat/SWE-Sumerians/models/user" TODO add external module for models and connect it here
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/emtreat/SWE-Sumerians/models" 
+    "go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-
-type User struct{
-    Id primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-    Name string `json:"name"`
-}
 
 
 var collection *mongo.Collection
@@ -65,7 +59,7 @@ func main() {
 }
 
 func addUser(cx *fiber.Ctx) error {
-    user := new(User)
+    user := new(models.User)
 
     if err := cx.BodyParser(user); err != nil {
         return err
@@ -106,7 +100,7 @@ func deleteUser(cx *fiber.Ctx) error {
 }
 
 func getUser(cx *fiber.Ctx) error {
-    var users []User
+    var users []models.User
 
     pointer, err := collection.Find(context.Background(), bson.M{})
 
@@ -117,7 +111,7 @@ func getUser(cx *fiber.Ctx) error {
     defer pointer.Close(context.Background())
 
     for pointer.Next(context.Background()){
-        var user User 
+        var user models.User 
         if err := pointer.Decode(&user); err != nil {
             return err
         }
