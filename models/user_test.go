@@ -86,8 +86,6 @@ func TestUserFunctions(t *testing.T) {
 	// Test data
 	testUser := map[string]interface{}{
 		"name": "Test User",
-		// "email":    "test@example.com",
-		// "password": "password123",
 	}
 	userData, _ := json.Marshal(testUser)
 
@@ -97,5 +95,18 @@ func TestUserFunctions(t *testing.T) {
 	resp, err := fiberapp.Test(req)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	// check User GET
+	req = httptest.NewRequest(http.MethodGet, "/api/users", nil)
+	resp, err = fiberapp.Test(req)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	// check User DELETE
+	//userid := "67c9ef8861422722922d6597"
+	// req = httptest.NewRequest(http.MethodDelete, "/api/user/:id", nil)
+	// resp, err = fiberapp.Test(req)
+	// assert.Nil(t, err)
+	// assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 }
