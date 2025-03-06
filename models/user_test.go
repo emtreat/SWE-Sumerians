@@ -36,7 +36,7 @@ func ServerTest() (*fiber.App, *mongo.Collection, error) {
 
 	URI := os.Getenv("URI") // Gets the database's URI from the ".env"
 	dbOpts := options.Client().ApplyURI(URI)
-	db, err := mongo.Connect(context.Background(), dbOpts)
+	db, err := mongo.Connect(context.Background(), dbOpts) //connect to the database
 
 	if err != nil {
 		fmt.Println("error connecting")
@@ -55,7 +55,7 @@ func ServerTest() (*fiber.App, *mongo.Collection, error) {
 	//collection with test data
 	collection_test := db.Database("project_db").Collection("test_users")
 
-	//Delete all documents in collection
+	//Delete all documents in collection to start test
 	_, err = collection_test.DeleteMany(context.Background(), bson.M{})
 	if err != nil {
 		fmt.Println("error deleting")
@@ -65,31 +65,35 @@ func ServerTest() (*fiber.App, *mongo.Collection, error) {
 	env := &TestEnv{ //not to be confused with the poorly named ".env" file that is totally unrelated
 		users: models.UserModel{DB: collection_test},
 	}
-
+	// new fiber app initialized
 	app := fiber.New()
-
+	// Routes
 	app.Get("/api/users", env.users.GetUsers)
 	app.Post("/api/users", env.users.AddUser)
 	app.Delete("/api/users/:id", env.users.DeleteUser)
 	return app, collection_test, nil
 }
 
+// Test for User API calls
 func TestUserFunctions(t *testing.T) {
+	//extracting values from the Test Server
 	fiberapp, collection, err := ServerTest()
 	if err != nil {
 		fmt.Println("you failed hard, the server didn't start")
 		t.FailNow()
 	}
+	// close connection and clear data base after the function
 	defer collection.Database().Client().Disconnect(context.Background())
 	defer collection.DeleteMany(context.Background(), bson.M{})
 
-	// Test data
+	// Test data for user field
 	testUser := map[string]interface{}{
 		"name": "Test User",
 	}
+	// user data converted to JSON
 	userData, _ := json.Marshal(testUser)
 
-	//Create a new user (POST)
+	//Create a new user (POST) and test
 	req := httptest.NewRequest(http.MethodPost, "/api/users", bytes.NewReader(userData))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := fiberapp.Test(req)
@@ -103,8 +107,8 @@ func TestUserFunctions(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// check User DELETE
-	//userid := "67c9ef8861422722922d6597"
-	// req = httptest.NewRequest(http.MethodDelete, "/api/user/:id", nil)
+	// userid := "67c9ef8861422722922d6597"
+	// req = httptest.NewRequest(http.MethodDelete, "/api/user/:id"+userid, nil)
 	// resp, err = fiberapp.Test(req)
 	// assert.Nil(t, err)
 	// assert.Equal(t, http.StatusOK, resp.StatusCode)
