@@ -1,4 +1,4 @@
-package main
+package models_test
 
 import (
 	"bytes"
@@ -26,10 +26,11 @@ type TestEnv struct {
 }
 
 // TestServer starts up the mock data collection and returns the fiber, collection, and error
-func TestServer() (*fiber.App, *mongo.Collection, error) {
-	err := godotenv.Load(".env") // Get the environment set up (currently just using localhost and the DB I set up)
+func ServerTest() (*fiber.App, *mongo.Collection, error) {
+	err := godotenv.Load("../.env") // Get the environment set up (currently just using localhost and the DB I set up)
 
 	if err != nil { // Return an error if the environment isn't set up
+		fmt.Println("environment setup error")
 		return nil, nil, err
 	}
 
@@ -38,6 +39,7 @@ func TestServer() (*fiber.App, *mongo.Collection, error) {
 	db, err := mongo.Connect(context.Background(), dbOpts)
 
 	if err != nil {
+		fmt.Println("error connecting")
 		return nil, nil, err
 	}
 
@@ -56,6 +58,7 @@ func TestServer() (*fiber.App, *mongo.Collection, error) {
 	//Delete all documents in collection
 	_, err = collection_test.DeleteMany(context.Background(), bson.M{})
 	if err != nil {
+		fmt.Println("error deleting")
 		return nil, nil, err
 	}
 
@@ -72,7 +75,7 @@ func TestServer() (*fiber.App, *mongo.Collection, error) {
 }
 
 func TestUserFunctions(t *testing.T) {
-	fiberapp, collection, err := TestServer()
+	fiberapp, collection, err := ServerTest()
 	if err != nil {
 		fmt.Println("you failed hard, the server didn't start")
 		t.FailNow()
@@ -82,13 +85,13 @@ func TestUserFunctions(t *testing.T) {
 
 	// Test data
 	testUser := map[string]interface{}{
-		"name":     "Test User",
-		"email":    "test@example.com",
-		"password": "password123",
+		"name": "Test User",
+		// "email":    "test@example.com",
+		// "password": "password123",
 	}
 	userData, _ := json.Marshal(testUser)
 
-	// Step 1: Create a new user (POST)
+	//Create a new user (POST)
 	req := httptest.NewRequest(http.MethodPost, "/api/users", bytes.NewReader(userData))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := fiberapp.Test(req)
