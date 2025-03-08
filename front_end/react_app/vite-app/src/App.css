@@ -44,6 +44,15 @@ body {
   color: var(--name-color);
 }
 
+._id {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--name-color);
+}
+
 .container {
   width: 90%;
   max-width: 600px;
@@ -87,6 +96,12 @@ button:hover {
     left: 1.5rem;
   }
 
+  ._id {
+    font-size: 1.2rem;
+    top: 1.5rem;
+    left: 1.5rem;
+  }
+
   .container {
     width: 95%;
     height: 40vh;
@@ -108,6 +123,12 @@ button:hover {
     font-size: 1rem;
     top: 1rem;
     left: 1rem;
+  }
+
+  ._id {
+    font-size: 1.2rem;
+    top: 1.5rem;
+    left: 1.5rem;
   }
 
   .container {
