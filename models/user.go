@@ -9,6 +9,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+const (
+    Ok int = 200
+    Created int = 201
+    NotFound int = 404
+    ExpectationFailed int = 417
+    LengthRequired int = 411
+
+)
+
 type User struct {
 	Id   primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Name string             `json:"name"`
@@ -24,17 +33,17 @@ func (m UserModel) DeleteUser(cx *fiber.Ctx) error {
 	usrId, err := primitive.ObjectIDFromHex(id)
 
 	if err != nil {
-		return cx.Status(404).JSON(fiber.Map{"error": "Id doesn't exist"})
+		return cx.Status(NotFound).JSON(fiber.Map{"error": "Id doesn't exist"})
 	}
 
 	filter := bson.M{"_id": usrId}
 	_, err = m.DB.DeleteOne(context.Background(), filter)
 
 	if err != nil {
-		return cx.Status(417).JSON(fiber.Map{"error": "failed to delete user"})
+		return cx.Status(ExpectationFailed).JSON(fiber.Map{"error": "failed to delete user"})
 	}
 
-	return cx.Status(200).JSON(fiber.Map{"user successfully deleted": true})
+	return cx.Status(Ok).JSON(fiber.Map{"user successfully deleted": true})
 }
 
 func (m UserModel) AddUser(c *fiber.Ctx) error {
@@ -45,7 +54,7 @@ func (m UserModel) AddUser(c *fiber.Ctx) error {
 	}
 
 	if user.Name == "" {
-		return c.Status(411).JSON(fiber.Map{"error:": "User must have a name"})
+		return c.Status(LengthRequired).JSON(fiber.Map{"error:": "User must have a name"})
 	}
 
 	result, err := m.DB.InsertOne(context.Background(), user)
@@ -56,7 +65,7 @@ func (m UserModel) AddUser(c *fiber.Ctx) error {
 
 	user.Id = result.InsertedID.(primitive.ObjectID)
 
-	return c.Status(201).JSON(user)
+	return c.Status(Created).JSON(user)
 
 }
 
