@@ -7,11 +7,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors" // Import the CORS middleware
-	"github.com/joho/godotenv"
 
 	"github.com/emtreat/SWE-Sumerians/models"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/emtreat/SWE-Sumerians/utils"
 
@@ -28,38 +26,38 @@ type Env struct {
 
 func main() {
 
-  
-  db := utils.ConectToDb(); // gets the database connection
-  defer db.Disconnect(context.Background()) // defers disconnecting from the server until after the function is closed
 
-	collection = client.Database("project_db").Collection("users")
-	collection_emails = client.Database("project_db").Collection("emails")
-	collection_files = client.Database("project_db").Collection("emails_to_users_test")
-  
-  
-	env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
-		users: models.UserModel{DB: collection},
-	}
+    db := utils.ConectToDb(); // gets the database connection
+    defer db.Disconnect(context.Background()) // defers disconnecting from the server until after the function is closed
 
-	app := fiber.New()
+    collection = db.Database("project_db").Collection("users")
+    collection_emails = db.Database("project_db").Collection("emails")
+    collection_files = db.Database("project_db").Collection("emails_to_users_test")
 
-	// CORS middleware
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173",      // Allow requests from React frontend (vite-app server)
-		AllowMethods: "GET,POST,DELETE",            // Allowed HTTP methods
-		AllowHeaders: "Origin,Content-Type,Accept", // Allowed headers
-	}))
-  
-  app.Get("/api/users", env.users.GetUsers)
-	app.Post("/api/users", env.users.AddUser)
-	app.Delete("/api/users/:id", env.users.DeleteUser)
 
-	app.Get("/api/emails_to_users_test", getFiles)
-	app.Get("/api/emails", getEmail)
+    env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
+        users: models.UserModel{DB: collection},
+    }
 
-	port := os.Getenv("PORT")
+    app := fiber.New()
 
-	log.Fatal(app.Listen("0.0.0.0:" + port))
+    // CORS middleware
+    app.Use(cors.New(cors.Config{
+        AllowOrigins: "http://localhost:5173",      // Allow requests from React frontend (vite-app server)
+        AllowMethods: "GET,POST,DELETE",            // Allowed HTTP methods
+        AllowHeaders: "Origin,Content-Type,Accept", // Allowed headers
+    }))
+
+    app.Get("/api/users", env.users.GetUsers)
+    app.Post("/api/users", env.users.AddUser)
+    app.Delete("/api/users/:id", env.users.DeleteUser)
+
+    app.Get("/api/emails_to_users_test", getFiles)
+    app.Get("/api/emails", getEmail)
+
+    port := os.Getenv("PORT")
+
+    log.Fatal(app.Listen("0.0.0.0:" + port))
 }
 
 func getEmail(cx *fiber.Ctx) error {
@@ -82,9 +80,6 @@ func getEmail(cx *fiber.Ctx) error {
 	}
 
 	return cx.JSON(emails)
-
-
-	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
 
   
