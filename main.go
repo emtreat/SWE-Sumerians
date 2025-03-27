@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -13,43 +12,34 @@ import (
 	"github.com/emtreat/SWE-Sumerians/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	"github.com/emtreat/SWE-Sumerians/utils"
+
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var collection *mongo.Collection
 var collection_emails *mongo.Collection
 var collection_files *mongo.Collection
 
+type Env struct {
+	users models.UserModel
+}
+
 func main() {
-	err := godotenv.Load(".env") // Get the environment set up (currently just using localhost and the DB I set up)
 
-	if err != nil { // Return an error if the environment isn't set up
-		log.Fatal("Error loading environment: check \".env\" file", err)
-	}
-
-	URI := os.Getenv("URI") // Gets the database's URI from the ".env"
-
-	clientOpts := options.Client().ApplyURI(URI)
-	client, err := mongo.Connect(context.Background(), clientOpts)
-
-	if err != nil {
-		log.Fatal("Error connecting to database", err)
-	}
-
-	defer client.Disconnect(context.Background())
-
-	err = client.Ping(context.Background(), nil)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Connected to database")
+  
+  db := utils.ConectToDb(); // gets the database connection
+  defer db.Disconnect(context.Background()) // defers disconnecting from the server until after the function is closed
 
 	collection = client.Database("project_db").Collection("users")
 	collection_emails = client.Database("project_db").Collection("emails")
 	collection_files = client.Database("project_db").Collection("emails_to_users_test")
+  
+  
+	env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
+		users: models.UserModel{DB: collection},
+	}
 
 	app := fiber.New()
 
@@ -59,80 +49,17 @@ func main() {
 		AllowMethods: "GET,POST,DELETE",            // Allowed HTTP methods
 		AllowHeaders: "Origin,Content-Type,Accept", // Allowed headers
 	}))
+  
+  app.Get("/api/users", env.users.GetUsers)
+	app.Post("/api/users", env.users.AddUser)
+	app.Delete("/api/users/:id", env.users.DeleteUser)
 
-	app.Get("/api/users", getUser)
 	app.Get("/api/emails_to_users_test", getFiles)
 	app.Get("/api/emails", getEmail)
-	app.Post("/api/users", addUser)
-	app.Delete("/api/users/:id", deleteUser)
 
 	port := os.Getenv("PORT")
 
 	log.Fatal(app.Listen("0.0.0.0:" + port))
-}
-
-func addUser(cx *fiber.Ctx) error {
-	user := new(models.User)
-
-	if err := cx.BodyParser(user); err != nil {
-		return err
-	}
-
-	if user.Name == "" {
-		return cx.Status(411).JSON(fiber.Map{"error": "User must have a name"})
-	}
-
-	result, err := collection.InsertOne(context.Background(), user)
-
-	if err != nil {
-		return err
-	}
-
-	user.Id = result.InsertedID.(primitive.ObjectID)
-
-	return cx.Status(201).JSON(user)
-}
-
-func deleteUser(cx *fiber.Ctx) error {
-	id := cx.Params("id")
-
-	usrId, err := primitive.ObjectIDFromHex(id)
-
-	if err != nil {
-		return cx.Status(404).JSON(fiber.Map{"error": "Id doesn't exist"})
-	}
-
-	filter := bson.M{"_id": usrId}
-	_, err = collection.DeleteOne(context.Background(), filter)
-
-	if err != nil {
-		return cx.Status(417).JSON(fiber.Map{"error": "failed to delete user"})
-	}
-
-	return cx.Status(200).JSON(fiber.Map{"user successfully deleted": true})
-}
-
-func getUser(cx *fiber.Ctx) error {
-	var users []models.User
-
-	pointer, err := collection.Find(context.Background(), bson.M{})
-
-	if err != nil {
-		return err
-	}
-
-	defer pointer.Close(context.Background())
-
-	for pointer.Next(context.Background()) {
-		var user models.User
-		if err := pointer.Decode(&user); err != nil {
-			return err
-		}
-		users = append(users, user)
-	}
-
-	return cx.JSON(users)
-
 }
 
 func getEmail(cx *fiber.Ctx) error {
@@ -156,8 +83,11 @@ func getEmail(cx *fiber.Ctx) error {
 
 	return cx.JSON(emails)
 
+
+	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
 
+  
 func getFiles(cx *fiber.Ctx) error {
 	var files []models.Users
 
@@ -180,3 +110,4 @@ func getFiles(cx *fiber.Ctx) error {
 	return cx.JSON(files)
 
 }
+
