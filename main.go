@@ -2,18 +2,14 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
-
 	"github.com/emtreat/SWE-Sumerians/models"
-	//"go.mongodb.org/mongo-driver/bson"
-	//"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/emtreat/SWE-Sumerians/utils"
+
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var collection *mongo.Collection
@@ -23,30 +19,10 @@ type Env struct {
 }
 
 func main() {
-	err := godotenv.Load(".env") // Get the environment set up (currently just using localhost and the DB I set up)
 
-	if err != nil { // Return an error if the environment isn't set up
-		log.Fatal("Error loading environment: check \".env\" file", err)
-	}
+    db := utils.ConectToDb(); // gets the database connection
+    defer db.Disconnect(context.Background()) // defers disconnecting from the server until after the function is closed
 
-	URI := os.Getenv("URI") // Gets the database's URI from the ".env"
-
-	dbOpts := options.Client().ApplyURI(URI)
-	db, err := mongo.Connect(context.Background(), dbOpts)
-
-	if err != nil {
-		log.Fatal("Error connecting to database", err)
-	}
-
-	defer db.Disconnect(context.Background())
-
-	err = db.Ping(context.Background(), nil)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Connected to database")
 
 	collection = db.Database("project_db").Collection("users")
 
