@@ -14,6 +14,25 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* Floating button styles */
+.floating-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #1a5dbb; /* Green background */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 1000; /* Ensures it stays above other content */
+}
+
+.floating-button:hover {
+  background-color: #032671; /* Darker green on hover */
+}
 
 html {
   font-size: 16px; /* Base font size for rem units */
@@ -36,6 +55,15 @@ body {
 }
 
 .name {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--name-color);
+}
+
+._id {
   position: absolute;
   top: 2rem;
   left: 2rem;
@@ -87,6 +115,12 @@ button:hover {
     left: 1.5rem;
   }
 
+  ._id {
+    font-size: 1.2rem;
+    top: 1.5rem;
+    left: 1.5rem;
+  }
+
   .container {
     width: 95%;
     height: 40vh;
@@ -110,6 +144,12 @@ button:hover {
     left: 1rem;
   }
 
+  ._id {
+    font-size: 1.2rem;
+    top: 1.5rem;
+    left: 1.5rem;
+  }
+
   .container {
     height: 30vh;
     min-height: 200px;
@@ -122,6 +162,11 @@ button:hover {
 }
 .App {
   text-align: center;
+}
+
+.item {
+  min-width: 33rem;
+  text-align: left;
 }
 
 .App-logo {
