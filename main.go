@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors" // Import the CORS middleware
 
 	"github.com/emtreat/SWE-Sumerians/models"
-	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/emtreat/SWE-Sumerians/utils"
 
@@ -40,6 +39,7 @@ func main() {
     env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
         users: models.UserModel{DB: collection},
         emails: models.EmailModel{DB: collection},
+        files: models.FileModel{DB: collection},
     }
 
     app := fiber.New()
@@ -55,36 +55,10 @@ func main() {
     app.Post("/api/users", env.users.AddUser)
     app.Delete("/api/users/:id", env.users.DeleteUser)
 
-    app.Get("/api/emails_to_users_test", getFiles)
+    app.Get("/api/emails_to_users_test", env.files.GetFiles)
     app.Get("/api/emails", env.emails.GetEmail)
 
     port := os.Getenv("PORT")
 
     log.Fatal(app.Listen("0.0.0.0:" + port))
 }
-
-
-  
-func getFiles(cx *fiber.Ctx) error {
-	var files []models.Users
-
-	pointer, err := collection_files.Find(context.Background(), bson.M{})
-
-	if err != nil {
-		return err
-	}
-
-	defer pointer.Close(context.Background())
-
-	for pointer.Next(context.Background()) {
-		var file models.Users
-		if err := pointer.Decode(&file); err != nil {
-			return err
-		}
-		files = append(files, file)
-	}
-
-	return cx.JSON(files)
-
-}
-
