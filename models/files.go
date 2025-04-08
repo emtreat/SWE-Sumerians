@@ -13,17 +13,13 @@ type File struct {
 	FileSize int32  `json:"file_size"`
 }
 
-type Files struct {
-	Files []File
-}
-
 type FileModel struct {
    DB *mongo.Collection; 
 }
 
 
 func (m FileModel) GetFiles(cx *fiber.Ctx) error {
-	var files []Files
+	var files []File
 
 	pointer, err := m.DB.Find(context.Background(), bson.M{})
 
@@ -34,7 +30,7 @@ func (m FileModel) GetFiles(cx *fiber.Ctx) error {
 	defer pointer.Close(context.Background())
 
 	for pointer.Next(context.Background()) {
-		var file Files
+		var file File
 		if err := pointer.Decode(&file); err != nil {
 			return err
 		}
