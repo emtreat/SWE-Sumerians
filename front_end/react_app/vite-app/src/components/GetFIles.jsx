@@ -5,7 +5,7 @@ export function GetFiles() {
   const [files, setFiles] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/emails_to_users_test")
+    fetch("http://localhost:8080/api/users")
       .then((response) => response.json())
       .then((data) => {
         console.log(data);

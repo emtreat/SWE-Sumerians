@@ -10,6 +10,7 @@ import (
 
 	"github.com/emtreat/SWE-Sumerians/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/emtreat/SWE-Sumerians/utils"
 
@@ -17,8 +18,7 @@ import (
 )
 
 var collection *mongo.Collection
-var collection_emails *mongo.Collection
-var collection_files *mongo.Collection
+var users_collection *mongo.Collection
 
 type Env struct {
 	users models.UserModel
@@ -26,67 +26,40 @@ type Env struct {
 
 func main() {
 
+	db := utils.ConectToDb()                  // gets the database connection
+	defer db.Disconnect(context.Background()) // defers disconnecting from the server until after the function is closed
 
-    db := utils.ConectToDb(); // gets the database connection
-    defer db.Disconnect(context.Background()) // defers disconnecting from the server until after the function is closed
+	collection = db.Database("project_db").Collection("users") // subject to deletion
+	users_collection = db.Database("project_db").Collection("users")
 
-    collection = db.Database("project_db").Collection("users")
-    collection_emails = db.Database("project_db").Collection("emails")
-    collection_files = db.Database("project_db").Collection("emails_to_users_test")
-
-
-    env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
-        users: models.UserModel{DB: collection},
-    }
-
-    app := fiber.New()
-
-    // CORS middleware
-    app.Use(cors.New(cors.Config{
-        AllowOrigins: "http://localhost:5173",      // Allow requests from React frontend (vite-app server)
-        AllowMethods: "GET,POST,DELETE",            // Allowed HTTP methods
-        AllowHeaders: "Origin,Content-Type,Accept", // Allowed headers
-    }))
-
-    app.Get("/api/users", env.users.GetUsers)
-    app.Post("/api/users", env.users.AddUser)
-    app.Delete("/api/users/:id", env.users.DeleteUser)
-
-    app.Get("/api/emails_to_users_test", getFiles)
-    app.Get("/api/emails", getEmail)
-
-    port := os.Getenv("PORT")
-
-    log.Fatal(app.Listen("0.0.0.0:" + port))
-}
-
-func getEmail(cx *fiber.Ctx) error {
-	var emails []models.Emails
-
-	pointer, err := collection_emails.Find(context.Background(), bson.M{})
-
-	if err != nil {
-		return err
+	env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
+		users: models.UserModel{DB: collection},
 	}
 
-	defer pointer.Close(context.Background())
+	app := fiber.New()
 
-	for pointer.Next(context.Background()) {
-		var email models.Emails
-		if err := pointer.Decode(&email); err != nil {
-			return err
-		}
-		emails = append(emails, email)
-	}
+	// CORS middleware
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:5173",      // Allow requests from React frontend (vite-app server)
+		AllowMethods: "GET,POST,DELETE",            // Allowed HTTP methods
+		AllowHeaders: "Origin,Content-Type,Accept", // Allowed headers
+	}))
 
-	return cx.JSON(emails)
+	// app.Get("/api/users", env.users.GetUsers) // may not need in the future
+
+	app.Post("/api/users", AddUser)
+	app.Delete("/api/users/:id", env.users.DeleteUser)
+	app.Get("/api/users", getFiles)
+
+	port := os.Getenv("PORT")
+
+	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
 
-  
 func getFiles(cx *fiber.Ctx) error {
 	var files []models.Users
 
-	pointer, err := collection_files.Find(context.Background(), bson.M{})
+	pointer, err := users_collection.Find(context.Background(), bson.M{})
 
 	if err != nil {
 		return err
@@ -106,3 +79,33 @@ func getFiles(cx *fiber.Ctx) error {
 
 }
 
+func AddUser(c *fiber.Ctx) error {
+	const (
+		Ok                int = 200
+		Created           int = 201
+		NotFound          int = 404
+		ExpectationFailed int = 417
+		LengthRequired    int = 411
+	)
+
+	var user = new(models.Users)
+
+	if err := c.BodyParser(user); err != nil {
+		return err
+	}
+
+	if user.Email == "" {
+		return c.Status(LengthRequired).JSON(fiber.Map{"error:": "User must have a valid email"})
+	}
+
+	result, err := users_collection.InsertOne(context.Background(), user)
+
+	if err != nil {
+		return err
+	}
+
+	user.Id = result.InsertedID.(primitive.ObjectID)
+
+	return c.Status(Created).JSON(user)
+
+}

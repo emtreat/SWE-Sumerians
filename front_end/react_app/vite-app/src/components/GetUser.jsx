@@ -35,17 +35,18 @@ import '../App.css'
 
 //place holder function while I work on a dynamic GET request
 export function GetUsers() {
+  // eslint-disable-next-line no-unused-vars
   const [posts, setPosts] = useState([]);
   const [firstPost, setFirstPost] = useState(null); // New state for first post
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/emails_to_users_test")
+    fetch("http://localhost:8080/api/users")
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
         setPosts(data);
         if (data.length > 0) {
-          setFirstPost(data[0]); // Store the first post
+          setFirstPost(data[2]); // Store the first post
         }
       })
       .catch((err) => {

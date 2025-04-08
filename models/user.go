@@ -10,12 +10,11 @@ import (
 )
 
 const (
-    Ok int = 200
-    Created int = 201
-    NotFound int = 404
-    ExpectationFailed int = 417
-    LengthRequired int = 411
-
+	Ok                int = 200
+	Created           int = 201
+	NotFound          int = 404
+	ExpectationFailed int = 417
+	LengthRequired    int = 411
 )
 
 type User struct {
