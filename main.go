@@ -22,6 +22,8 @@ var collection_files *mongo.Collection
 
 type Env struct {
 	users models.UserModel
+    emails models.EmailModel
+    files models.FileModel
 }
 
 func main() {
@@ -37,6 +39,7 @@ func main() {
 
     env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
         users: models.UserModel{DB: collection},
+        emails: models.EmailModel{DB: collection},
     }
 
     app := fiber.New()
@@ -53,34 +56,13 @@ func main() {
     app.Delete("/api/users/:id", env.users.DeleteUser)
 
     app.Get("/api/emails_to_users_test", getFiles)
-    app.Get("/api/emails", getEmail)
+    app.Get("/api/emails", env.emails.GetEmail)
 
     port := os.Getenv("PORT")
 
     log.Fatal(app.Listen("0.0.0.0:" + port))
 }
 
-func getEmail(cx *fiber.Ctx) error {
-	var emails []models.Emails
-
-	pointer, err := collection_emails.Find(context.Background(), bson.M{})
-
-	if err != nil {
-		return err
-	}
-
-	defer pointer.Close(context.Background())
-
-	for pointer.Next(context.Background()) {
-		var email models.Emails
-		if err := pointer.Decode(&email); err != nil {
-			return err
-		}
-		emails = append(emails, email)
-	}
-
-	return cx.JSON(emails)
-}
 
   
 func getFiles(cx *fiber.Ctx) error {
