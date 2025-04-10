@@ -49,14 +49,15 @@ func main() {
 
 	app.Post("/api/users", AddUser)
 	app.Delete("/api/users/:id", env.users.DeleteUser)
-	app.Get("/api/users", getFiles)
+	app.Get("/api/users", getUsers)
+	app.Get("/api/users/:email", GetEmail)
 
 	port := os.Getenv("PORT")
 
 	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
 
-func getFiles(cx *fiber.Ctx) error {
+func getUsers(cx *fiber.Ctx) error {
 	var files []models.Users
 
 	pointer, err := users_collection.Find(context.Background(), bson.M{})
@@ -109,3 +110,39 @@ func AddUser(c *fiber.Ctx) error {
 	return c.Status(Created).JSON(user)
 
 }
+
+func GetEmail(c *fiber.Ctx) error {
+	email := c.Params("email")
+
+	// Basic email validation
+	if email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Email parameter is required",
+		})
+	}
+
+	// Case-insensitive email search
+	filter := bson.M{
+		"email": bson.M{"$regex": "^" + email + "$", "$options": "i"},
+	}
+
+	var user models.Users
+	err := users_collection.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "User not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Database error",
+		})
+	}
+
+	return c.JSON(user)
+}
+
+// func AddFile(c *fiber.Ctx) error {
+// 	files := c.Params("Files")
+
+// } // Currently working on - Kenneth
