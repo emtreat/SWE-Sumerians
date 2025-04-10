@@ -1,70 +1,82 @@
-import React, { useState, useEffect } from 'react';
-import { GetFiles } from './GetFIles';
 import '../App.css'
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import axios from 'axios';
+import { useParams } from 'react-router-dom';
 
-// export function GetUsers() {
-//   // let endpoint = "/api/users/"
-//   const [posts, setPosts] = useState([]);
-//    useEffect(() => {
-//       fetch("http://localhost:8080/api/emails_to_users_test")
-//          .then((response) => response.json())
-//          .then((data) => {
-//             console.log(data);
-//             setPosts(data);
-//          })
-//          .catch((err) => {
-//             console.log(err.message);
-//          });
-//    }, []);
-
-//    return (
-//     <div className="container">
-//        {posts.map((post) => {
-//           return (
-//             <div className="container" key={post.Email}>
-//                 <h2 className="name">{post.Email}</h2>
-//                 <div className="button">
-//                 <div className="delete-btn">{post._id}</div>
-//                 </div>
-//              </div>
-//           );
-//        })}
-//     </div>
-//     );
-// }
-
-//place holder function while I work on a dynamic GET request
 export function GetUsers() {
-  const [posts, setPosts] = useState([]);
-  const [firstPost, setFirstPost] = useState(null); // New state for first post
+  const { email } = useParams();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/emails_to_users_test")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        setPosts(data);
-        if (data.length > 0) {
-          setFirstPost(data[0]); // Store the first post
-        }
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
-  }, []);
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/users/${(email)}`
+        );
+        setUser(response.data);
+      } catch (err) {
+        setError(err.response?.data?.error || 'Failed to fetch user data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserData();}, [email]);
 
-  // const items = firstPost.map(item => <li>{item}</li>)
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!user) return <div>No user data found</div>;
 
   return (
-    <div className="container">
-      {firstPost ? ( // Only render if firstPost exists
-        <div className="container" key={firstPost.Email}>
-          <h2 className="name">{firstPost.Email}</h2>
-          <GetFiles/>
-        </div>
-      ) : (
-        <p>No data available...</p> // Fallback content
-      )}
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', padding: '20px' }}>
+      <div style={{ textAlign: 'center', margin: '40px 0' }}>
+        <h1 style={{ fontSize: '2rem', margin: 0 }}>Welcome, {email}</h1>
+      </div>
+  
+      {/* Files container */}
+      <div style={{ 
+        flex: 1, 
+        backgroundColor: 'white', 
+        borderRadius: '8px', 
+        padding: '20px',
+        margin: '0 auto 30px auto', 
+        width: '80%',
+        maxWidth: '800px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        <h2 style={{ marginTop: 0 }}>Your Files:</h2>
+        
+        {user.Files.length > 0 ? (
+          <ul style={{ 
+            listStyle: 'none', 
+            padding: 0,
+            maxHeight: '400px',
+            overflowY: 'auto'
+          }}>
+            {user.Files.map((file, index) => (
+              <li key={index} style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between',
+                padding: '10px 0',
+                borderBottom: '1px solid #eee'
+              }}>
+                <span>{file.file_name}</span>
+                <span style={{ fontWeight: 'bold' }}>{file.file_size} KB</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p style={{ textAlign: 'center', color: '#666' }}>No files uploaded yet</p>
+        )}
+      </div>
+  
+      <button
+        onClick={() => console.log('Add file clicked')}
+      >
+        Add File
+      </button>
     </div>
   );
 }

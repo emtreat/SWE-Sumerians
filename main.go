@@ -9,6 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors" // Import the CORS middleware
 
 	"github.com/emtreat/SWE-Sumerians/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/emtreat/SWE-Sumerians/utils"
 
@@ -16,8 +18,7 @@ import (
 )
 
 var collection *mongo.Collection
-var collection_emails *mongo.Collection
-var collection_files *mongo.Collection
+var users_collection *mongo.Collection
 
 type Env struct {
 	users models.UserModel
@@ -27,38 +28,122 @@ type Env struct {
 
 func main() {
 
+	db := utils.ConectToDb()                  // gets the database connection
+	defer db.Disconnect(context.Background()) // defers disconnecting from the server until after the function is closed
 
-    db := utils.ConectToDb(); // gets the database connection
-    defer db.Disconnect(context.Background()) // defers disconnecting from the server until after the function is closed
+	collection = db.Database("project_db").Collection("users") // subject to deletion
+	users_collection = db.Database("project_db").Collection("users")
 
-    collection = db.Database("project_db").Collection("users")
-    collection_emails = db.Database("project_db").Collection("emails")
-    collection_files = db.Database("project_db").Collection("emails_to_users_test")
+	env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
+		users: models.UserModel{DB: collection},
+	}
 
+	app := fiber.New()
 
-    env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
-        users: models.UserModel{DB: collection},
-        emails: models.EmailModel{DB: collection},
-        files: models.FileModel{DB: collection},
-    }
+	// CORS middleware
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:5173",      // Allow requests from React frontend (vite-app server)
+		AllowMethods: "GET,POST,DELETE",            // Allowed HTTP methods
+		AllowHeaders: "Origin,Content-Type,Accept", // Allowed headers
+	}))
 
-    app := fiber.New()
+	// app.Get("/api/users", env.users.GetUsers) // may not need in the future
 
-    // CORS middleware
-    app.Use(cors.New(cors.Config{
-        AllowOrigins: "http://localhost:5173",      // Allow requests from React frontend (vite-app server)
-        AllowMethods: "GET,POST,DELETE",            // Allowed HTTP methods
-        AllowHeaders: "Origin,Content-Type,Accept", // Allowed headers
-    }))
+	app.Post("/api/users", AddUser)
+	app.Delete("/api/users/:id", env.users.DeleteUser)
+	app.Get("/api/users", getUsers)
+	app.Get("/api/users/:email", GetEmail)
 
-    app.Get("/api/users", env.users.GetUsers)
-    app.Post("/api/users", env.users.AddUser)
-    app.Delete("/api/users/:id", env.users.DeleteUser)
+	port := os.Getenv("PORT")
 
-    app.Get("/api/emails_to_users_test", env.files.GetFiles)
-    app.Get("/api/emails", env.emails.GetEmail)
-
-    port := os.Getenv("PORT")
-
-    log.Fatal(app.Listen("0.0.0.0:" + port))
+	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
+
+func getUsers(cx *fiber.Ctx) error {
+	var files []models.Users
+
+	pointer, err := users_collection.Find(context.Background(), bson.M{})
+
+	if err != nil {
+		return err
+	}
+
+	defer pointer.Close(context.Background())
+
+	for pointer.Next(context.Background()) {
+		var file models.Users
+		if err := pointer.Decode(&file); err != nil {
+			return err
+		}
+		files = append(files, file)
+	}
+
+	return cx.JSON(files)
+
+}
+
+func AddUser(c *fiber.Ctx) error {
+	const (
+		Ok                int = 200
+		Created           int = 201
+		NotFound          int = 404
+		ExpectationFailed int = 417
+		LengthRequired    int = 411
+	)
+
+	var user = new(models.Users)
+
+	if err := c.BodyParser(user); err != nil {
+		return err
+	}
+
+	if user.Email == "" {
+		return c.Status(LengthRequired).JSON(fiber.Map{"error:": "User must have a valid email"})
+	}
+
+	result, err := users_collection.InsertOne(context.Background(), user)
+
+	if err != nil {
+		return err
+	}
+
+	user.Id = result.InsertedID.(primitive.ObjectID)
+
+	return c.Status(Created).JSON(user)
+
+}
+
+func GetEmail(c *fiber.Ctx) error {
+	email := c.Params("email")
+
+	// Basic email validation
+	if email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Email parameter is required",
+		})
+	}
+
+	// Case-insensitive email search
+	filter := bson.M{
+		"email": bson.M{"$regex": "^" + email + "$", "$options": "i"},
+	}
+
+	var user models.Users
+	err := users_collection.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "User not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Database error",
+		})
+	}
+
+	return c.JSON(user)
+}
+
+// func AddFile(c *fiber.Ctx) error {
+// 	files := c.Params("Files")
+

@@ -9,8 +9,8 @@ import (
 )
 
 type File struct {
-	FileName string `json:"file_name"`
-	FileSize int32  `json:"file_size"`
+	FileName string `json:"filename"`
+	FileSize int32  `json:"filesize"`
 }
 
 type FileModel struct {
