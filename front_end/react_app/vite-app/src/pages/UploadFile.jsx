@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import { DropBox } from '../components/Dropbox';
 
 export function AddFile() {
   const { email } = useParams();
@@ -128,6 +129,7 @@ console.log(email)
         </div>
       </form>
     </div>
+    <DropBox />
     </div>
     
   );

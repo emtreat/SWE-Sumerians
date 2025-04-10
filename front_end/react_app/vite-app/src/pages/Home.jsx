@@ -10,9 +10,7 @@ export function Home() {
   return(
     <div >
       <div >
-    <GetUsers></GetUsers>
-    <DropBox />
-    <GetFiles />
+    <GetUsers />
     </div>
     <div >
       <Link to={`UploadFile/`}>
