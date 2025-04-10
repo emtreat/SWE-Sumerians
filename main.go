@@ -22,6 +22,8 @@ var users_collection *mongo.Collection
 
 type Env struct {
 	users models.UserModel
+    emails models.EmailModel
+    files models.FileModel
 }
 
 func main() {

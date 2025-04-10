@@ -1,4 +1,4 @@
-import './App.css'
+import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Home } from './pages/Home'
 import  { Login } from './pages/Login'
@@ -14,8 +14,8 @@ function App() {
         <Route path="/Home/:email" element={<Home/>} />
         <Route path="Home/:email/UploadFile" element ={<AddFile/>}/>
       </Routes>
-      </Router>
-      );
+    </Router>
+  );
 }
 
 export default App;
