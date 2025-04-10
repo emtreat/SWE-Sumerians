@@ -22,6 +22,8 @@ var users_collection *mongo.Collection
 
 type Env struct {
 	users models.UserModel
+    emails models.EmailModel
+    files models.FileModel
 }
 
 func main() {
@@ -145,4 +147,3 @@ func GetEmail(c *fiber.Ctx) error {
 // func AddFile(c *fiber.Ctx) error {
 // 	files := c.Params("Files")
 
-// } // Currently working on - Kenneth
