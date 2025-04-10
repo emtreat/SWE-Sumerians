@@ -6,6 +6,6 @@ import (
 
 type Users struct {
 	Id    primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Email string             `json: "email"`
-	Files []File             `json: "files"`
+	Email string             `json:"email"`
+	Files []File             `json:"Files"`
 }

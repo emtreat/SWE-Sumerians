@@ -51,6 +51,7 @@ func main() {
 	app.Delete("/api/users/:id", env.users.DeleteUser)
 	app.Get("/api/users", getUsers)
 	app.Get("/api/users/:email", GetEmail)
+	app.Post("/api/users/:email/files", AddFile)
 
 	port := os.Getenv("PORT")
 
@@ -114,14 +115,12 @@ func AddUser(c *fiber.Ctx) error {
 func GetEmail(c *fiber.Ctx) error {
 	email := c.Params("email")
 
-	// Basic email validation
 	if email == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Email parameter is required",
 		})
 	}
 
-	// Case-insensitive email search
 	filter := bson.M{
 		"email": bson.M{"$regex": "^" + email + "$", "$options": "i"},
 	}
@@ -142,7 +141,58 @@ func GetEmail(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-// func AddFile(c *fiber.Ctx) error {
-// 	files := c.Params("Files")
+func AddFile(c *fiber.Ctx) error {
+	const (
+		BadRequest    int = 400
+		NotFound      int = 404
+		InternalError int = 500
+		Created       int = 201
+	)
 
-// } // Currently working on - Kenneth
+	email := c.Params("email")
+	if email == "" {
+		return c.Status(BadRequest).JSON(fiber.Map{
+			"error": "Email is required",
+		})
+	}
+
+	var newFile models.File
+	if err := c.BodyParser(&newFile); err != nil {
+		return c.Status(BadRequest).JSON(fiber.Map{
+			"error": "Invalid file data",
+		})
+	}
+
+	if newFile.FileName == "" || newFile.FileSize <= 0 {
+		return c.Status(BadRequest).JSON(fiber.Map{
+			"error": "File name and size (positive integer) are required",
+		})
+	}
+
+	filter := bson.M{"email": email}
+	update := bson.M{
+		"$push": bson.M{"files": newFile},
+	}
+
+	result, err := users_collection.UpdateOne(
+		context.Background(),
+		filter,
+		update,
+	)
+	if err != nil {
+		return c.Status(InternalError).JSON(fiber.Map{
+			"error": "Failed to update user",
+		})
+	}
+
+	if result.MatchedCount == 0 {
+		return c.Status(NotFound).JSON(fiber.Map{
+			"error": "User not found",
+		})
+	}
+
+	return c.Status(Created).JSON(fiber.Map{
+		"message": "File added successfully",
+		"file":    newFile,
+	})
+}
