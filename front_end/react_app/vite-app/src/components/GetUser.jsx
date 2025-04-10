@@ -1,8 +1,11 @@
 import "../App.css";
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import axios from "axios";
-import { useParams } from "react-router-dom";
+
+import axios from 'axios';
+import { useParams } from 'react-router-dom';
+import { AddFile } from '../pages/UploadFile';
+import { AddUser } from './AddUser';
 
 export function GetUsers() {
   const { email } = useParams();
@@ -68,17 +71,15 @@ export function GetUsers() {
             }}
           >
             {user.Files.map((file, index) => (
-              <li
-                key={index}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "10px 0",
-                  borderBottom: "1px solid #eee",
-                }}
-              >
+              <li key={index} style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between',
+                borderBottom: '1px solid #eee'
+              }}> <button style={{display: 'flex', 
+                justifyContent: 'space-between',}}>
                 <span>{file.file_name}</span>
-                <span style={{ fontWeight: "bold" }}>{file.file_size} KB</span>
+                <span style={{ fontWeight: 'bold' }}>{file.file_size} KB</span>
+              </button>
               </li>
             ))}
           </ul>
@@ -88,8 +89,7 @@ export function GetUsers() {
           </p>
         )}
       </div>
-
-      <button onClick={() => console.log("Add file clicked")}>Add File</button>
+      {/* <AddUser></AddUser> */}
     </div>
   );
 }

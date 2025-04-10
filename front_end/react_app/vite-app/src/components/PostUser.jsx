@@ -21,8 +21,6 @@ export function PostUser() {
       const result = await axios.post('http://localhost:8080/api/users', data, {
         headers: {
           'Content-Type': 'application/json',
-          // Add any auth headers if needed:
-          // 'Authorization': 'Bearer YOUR_TOKEN_HERE'
         }
       });
       setResponse(result.data);

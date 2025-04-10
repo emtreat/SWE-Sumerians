@@ -1,6 +1,6 @@
 /* Base styles */
 :root {
-  --primary-color: #002d7f;
+  --primary-color: #e2e2e2;
   --name-color: #ffffff;
   --primary-hover-color: #00550a;
   --background-color: #3e3e3e;
@@ -16,11 +16,14 @@
 }
 /* Floating button styles */
 .floating-button {
+    align-items: center;
+    display: flex;
+  justify-content: center;  
   position: fixed;
   bottom: 20px;
   right: 20px;
-  padding: 10px 20px;
-  background-color: #1a5dbb; /* Green background */
+  /* padding: 10px 20px; */
+  background-color: #969696; /* Green background */
   color: white;
   border: none;
   border-radius: 4px;
@@ -31,7 +34,7 @@
 }
 
 .floating-button:hover {
-  background-color: #032671; /* Darker green on hover */
+  background-color: #ff771d; /* Darker green on hover */
 }
 
 html {
@@ -158,6 +161,7 @@ button:hover {
   button {
     font-size: 1rem;
     padding: 0.6rem 1.2rem;
+    
   }
 }
 .App {
@@ -192,7 +196,7 @@ button:hover {
 }
 
 .App-link {
-  color: #00580d;
+  color: #a86a13;
 }
 
 @keyframes App-logo-spin {

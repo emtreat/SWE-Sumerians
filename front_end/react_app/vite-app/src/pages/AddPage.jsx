@@ -2,6 +2,7 @@ import '../App.css'
 import { BrowserRouter as Routes, Route } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { PostUser } from '../components/PostUser';
+import { AddFile } from './UploadFile';
 
 export function Post() {
     return (
@@ -11,7 +12,7 @@ export function Post() {
       alignItems: 'center',
       height: '100vh' // Make sure the container takes up the full viewport height
     }}>
-        <Link to="/Home"> {<PostUser />}</Link>
+        <AddFile></AddFile>
     </div>
       );
 }

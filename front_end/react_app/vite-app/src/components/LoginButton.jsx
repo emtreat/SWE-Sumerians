@@ -15,7 +15,6 @@ export function Button() {
       setIsLoading(true);
   
       try {
-        // Navigate directly to user page with email in URL
         navigate(`/Home/${(email)}`);
       } catch (err) {
         setError('Error during navigation');
