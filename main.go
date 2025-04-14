@@ -10,7 +10,6 @@ import (
 
 	"github.com/emtreat/SWE-Sumerians/models"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/emtreat/SWE-Sumerians/utils"
 
@@ -21,7 +20,7 @@ var collection *mongo.Collection
 var users_collection *mongo.Collection
 
 type Env struct {
-	users models.UserModel
+	users models.UsersModel
     emails models.EmailModel
     files models.FileModel
 }
@@ -35,7 +34,7 @@ func main() {
 	users_collection = db.Database("project_db").Collection("users")
 
 	env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
-		users: models.UserModel{DB: collection},
+		users: models.UsersModel{DB: collection},
 	}
 
 	app := fiber.New()
@@ -47,11 +46,10 @@ func main() {
 		AllowHeaders: "Origin,Content-Type,Accept", // Allowed headers
 	}))
 
-	// app.Get("/api/users", env.users.GetUsers) // may not need in the future
 
-	app.Post("/api/users", AddUser)
+	app.Post("/api/users", env.users.AddUser)
 	app.Delete("/api/users/:id", env.users.DeleteUser)
-	app.Get("/api/users", getUsers)
+	app.Get("/api/users", env.users.GetUsers)
 	app.Get("/api/users/:email", GetEmail)
 	app.Post("/api/users/:email/files", AddFile)
 
@@ -60,59 +58,7 @@ func main() {
 	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
 
-func getUsers(cx *fiber.Ctx) error {
-	var files []models.Users
 
-	pointer, err := users_collection.Find(context.Background(), bson.M{})
-
-	if err != nil {
-		return err
-	}
-
-	defer pointer.Close(context.Background())
-
-	for pointer.Next(context.Background()) {
-		var file models.Users
-		if err := pointer.Decode(&file); err != nil {
-			return err
-		}
-		files = append(files, file)
-	}
-
-	return cx.JSON(files)
-
-}
-
-func AddUser(c *fiber.Ctx) error {
-	const (
-		Ok                int = 200
-		Created           int = 201
-		NotFound          int = 404
-		ExpectationFailed int = 417
-		LengthRequired    int = 411
-	)
-
-	var user = new(models.Users)
-
-	if err := c.BodyParser(user); err != nil {
-		return err
-	}
-
-	if user.Email == "" {
-		return c.Status(LengthRequired).JSON(fiber.Map{"error:": "User must have a valid email"})
-	}
-
-	result, err := users_collection.InsertOne(context.Background(), user)
-
-	if err != nil {
-		return err
-	}
-
-	user.Id = result.InsertedID.(primitive.ObjectID)
-
-	return c.Status(Created).JSON(user)
-
-}
 
 func GetEmail(c *fiber.Ctx) error {
 	email := c.Params("email")
