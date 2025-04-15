@@ -19,23 +19,32 @@ type EmailModel struct {
 	DB *mongo.Collection
 }
 
-func (m EmailModel) GetEmail(cx *fiber.Ctx) error {
-	var emails []Emails
+func (m EmailModel) GetEmail(c *fiber.Ctx) error {
+	email := c.Params("email")
 
-	pointer, err := m.DB.Find(context.Background(), bson.M{})
+	if email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Email parameter is required",
+		})
+	}
 
+	filter := bson.M{
+		"email": bson.M{"$regex": "^" + email + "$", "$options": "i"},
+	}
+
+	var user Users
+	err := m.DB.FindOne(context.Background(), filter).Decode(&user)
 	if err != nil {
-		return err
-	}
-
-	defer pointer.Close(context.Background())
-
-	for pointer.Next(context.Background()) {
-		var email Emails
-		if err := pointer.Decode(&email); err != nil {
-			return err
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "User not found",
+			})
 		}
-		emails = append(emails, email)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Database error",
+		})
 	}
-	return cx.JSON(emails)
+
+	return c.JSON(user)
 }
+
