@@ -4,7 +4,6 @@ import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useParams, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import { PostFileBlob } from "./AddBlob";
 
 export function DropBox({ props_className }) {
   const { email } = useParams();
