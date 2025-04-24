@@ -69,13 +69,16 @@ export function DropBox({ props_className }) {
       for (const file of files) {
         const binaryStr = await readFileAsBase64(file);
         const base64data = binaryStr.split(",")[1];
+        const fileSize = Blob([binaryStr]).size;
         console.log(binaryStr);
         console.log(base64data);
+        console.log(fileSize);
         const response = await axios.post(
           `http://localhost:8080/api/users/${email}/files`,
           {
             file_name: file.name,
-            file_blob: base64data,
+            file_data: binaryStr,
+            file_size: fileSize,
             //file_blob: Array.from(new Uint8Array(binaryStr)),
           },
           {

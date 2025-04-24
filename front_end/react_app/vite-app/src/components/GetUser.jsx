@@ -2,10 +2,10 @@ import "../App.css";
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import axios from 'axios';
-import { useParams } from 'react-router-dom';
-import { AddFile } from '../pages/UploadFile';
-import { AddUser } from './AddUser';
+import axios from "axios";
+import { useParams } from "react-router-dom";
+import { AddFile } from "../pages/UploadFile";
+import { AddUser } from "./AddUser";
 
 export function GetUsers() {
   const { email } = useParams();
@@ -21,6 +21,7 @@ export function GetUsers() {
         );
         setUser(response.data);
       } catch (err) {
+        console.log(err);
         setError(err.response?.data?.error || "Failed to fetch user data");
       } finally {
         setLoading(false);
@@ -61,7 +62,7 @@ export function GetUsers() {
       >
         <h2 style={{ marginTop: 0 }}>Your Files:</h2>
 
-        {user.Files.length > 0 ? (
+        {user.files.length > 0 ? (
           <ul
             style={{
               listStyle: "none",
@@ -70,16 +71,24 @@ export function GetUsers() {
               overflowY: "auto",
             }}
           >
-            {user.Files.map((file, index) => (
-              <li key={index} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                borderBottom: '1px solid #eee'
-              }}> <button style={{display: 'flex', 
-                justifyContent: 'space-between',}}>
-                <span>{file.file_name}</span>
-                <span style={{ fontWeight: 'bold' }}>{file.file_size} KB</span>
-              </button>
+            {user.files.map((file, index) => (
+              <li
+                key={index}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  borderBottom: "1px solid #eee",
+                }}
+              >
+                {" "}
+                <button
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span>{file.file_name}</span>
+                  <span style={{ fontWeight: "bold" }}>
+                    {file.file_size} KB
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
