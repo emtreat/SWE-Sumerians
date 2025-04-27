@@ -34,8 +34,6 @@ export function GetUsers() {
   if (error) return <div>Error: {error}</div>;
   if (!user) return <div>No user data found</div>;
 
-  // console.log(user.files);
-
   return (
     <div
       style={{
