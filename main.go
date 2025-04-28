@@ -4,14 +4,10 @@ import (
 	"context"
 	"log"
 	"os"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors" // Import the CORS middleware
-
 	"github.com/emtreat/SWE-Sumerians/models"
-
 	"github.com/emtreat/SWE-Sumerians/utils"
-
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
