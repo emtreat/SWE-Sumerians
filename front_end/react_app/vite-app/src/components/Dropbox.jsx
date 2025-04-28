@@ -13,6 +13,10 @@ export function DropBox({ props_className }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // when you drop files in dropbox
+  // add it to curr state of files
+  // with extracted data
+  // this does not POST, that is the function onclick
   const onDrop = useCallback((acceptedFiles) => {
     console.log(acceptedFiles);
     acceptedFiles.forEach((file) => {
@@ -61,30 +65,42 @@ export function DropBox({ props_className }) {
           reader.onabort = () => reject("file reading was aborted");
           reader.onerror = () => reject("file reading has failed");
           reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(file);
-          // reader.readAsArrayBuffer(file);
+          // reader.readAsDataURL(file);
+          reader.readAsArrayBuffer(file);
         });
       };
       //loop through files and post them
       for (const file of files) {
         const binaryStr = await readFileAsBase64(file);
-        const base64data = binaryStr.split(",")[1];
-        console.log(binaryStr);
-        console.log(base64data);
+        const byte = new Uint8Array(binaryStr);
+        const byteArr = Array.from(byte);
+        // const fileSize = new Blob([binaryStr]).size;
+        // console.log(binaryStr);
+        // console.log(byte);
+        // console.log(byteArr);
+        console.log(
+          "File Name:",
+          file.name,
+          "File Size:",
+          file.size,
+          "File Binary Arr:",
+          byteArr
+        );
         const response = await axios.post(
           `http://localhost:8080/api/users/${email}/files`,
           {
             file_name: file.name,
-            file_blob: base64data,
+            file_size: file.size,
+            file_blob: byteArr,
             //file_blob: Array.from(new Uint8Array(binaryStr)),
           },
           {
             headers: {
               "Content-Type": "application/json",
             },
+            timeout: 100000, //time allowed for uploading
           }
         );
-        console.log("here");
 
         console.log("response recieved", response);
       }
