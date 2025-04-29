@@ -1,6 +1,6 @@
 import "../App.css";
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 export function FileDisplay({ file }) {
@@ -10,26 +10,51 @@ export function FileDisplay({ file }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [fileURL, setFileURL] = useState(null);
+  const [fileTypes, setFileTypes] = useState("application/octet-stream");
 
   console.log("here");
 
+  useEffect(() => {
+    if (file && file.file_blob) {
+      try {
+        const binStr = atob(file.file_blob);
+        const bytes = new Uint8Array(binStr.length);
+        for (let i = 0; i < binStr.length; i++) {
+          bytes[i] = binStr.charCodeAt(i);
+        }
+        const fileExtension = fileType(file.file_name);
+        setFileTypes(fileExtension);
+        const blob = new Blob([bytes]);
+        const url = URL.createObjectURL(blob);
+        setFileURL(url);
+      } catch (err) {
+        console.error("Error with file:", err);
+        setError("failed to load file");
+      }
+    }
+    return () => {
+      if (fileURL) {
+        URL.revokeObjectURL(fileURL);
+      }
+    };
+  }, [file]);
+
   //Download Button
   const downloadFile = async () => {
-    setError("");
-    setMessage("");
-
-    setLoading(true);
+    if (!fileURL) {
+      setError("");
+    }
     try {
-      const url = window.URL.createObjectURL(new Blob([file.file_blob]));
+      setLoading(true);
       const link = document.createElement("a");
-      link.href = url;
+      link.href = fileURL;
       link.setAttribute("download", file.file_name);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(url);
 
-      setMessage("File Downloaded successfully! Redirecting...");
+      setMessage("File Downloaded successfully!");
       // setTimeout(() => navigate(`/Home/${email}`), 1500);
     } catch (err) {
       setError("Download failed. Please try again. Error: ", err);
@@ -38,57 +63,81 @@ export function FileDisplay({ file }) {
     }
   };
 
-  function fileType(bytes) {
-    const hex = bytes
-      .slice(0, 8)
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join(" ")
-      .toUpperCase();
-
-    switch (hex) {
-      case hex.startsWith("89 50 4E 47"):
-        return "image/png";
-      case hex.startsWith("FF D8 FF"):
-        return "image/jpeg";
-      case hex.startsWith("25 50 44 46"):
-        return "application/pdf";
-      case hex.startsWith("47 49 46 38"):
-        return "image/gif";
-      case hex.startsWith("50 48 03 04"):
-        return "application/zip";
-      default:
-        "unkown";
-    }
+  function fileType(fileName) {
+    const fileExtension = fileName.split(".").pop().toLowerCase();
+    console.log(fileExtension);
+    const mapFileType = {
+      //mime types
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      gif: "image/gif",
+      pdf: "application/pdf",
+      doc: "application/msword",
+      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      xls: "application/vnd.ms-excel",
+      xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      zip: "application/zip",
+      mp3: "audio/mpeg",
+      mp4: "video/mp4",
+      txt: "text/plain",
+      csv: "text/csv",
+    };
+    return mapFileType[fileExtension];
   }
-
-  function base64Byte(base64) {
-    const binaryStr = atob(base64);
-    const bytes = new Uint8Array(binaryStr.length);
-    for (let i = 0; i < binaryStr.length; i++) {
-      bytes[i] = binaryStr.charCodeAt(i);
-    }
-    return bytes;
-  }
-
-  const file_convert_from_base64_to_bytes = base64Byte(file.file_blob);
-  const typefromfile = fileType(file_convert_from_base64_to_bytes);
 
   console.log(file);
-  console.log(file_convert_from_base64_to_bytes);
-  console.log(typefromfile);
-
-  const url = window.URL.createObjectURL(new Blob([file.file_blob]));
-  console.log(url);
-
-  // end of send blob section
+  console.log(fileType(file.file_name));
 
   if (loading) return <div className="container">File Loading</div>;
+  if (fileTypes == "application/pdf") {
+    return (
+      <div>
+        <h2 style={{ color: "white", backgroundColor: "rgba(0,0,0,0.9)" }}>
+          {file.file_name}
+        </h2>
+        <object
+          data={fileURL}
+          type="application/pdf"
+          width={200}
+          height={200}
+        ></object>
+      </div>
+    );
+  } else if (
+    fileTypes == "image/jpeg" ||
+    fileTypes == "image/png" ||
+    fileTypes == "image/gif"
+  ) {
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: "0",
+          left: "0",
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "rgba(0,0,0,0.9)",
+          zOndex: "1000", // in the front
+        }}
+      >
+        <h2 style={{ color: "white", backgroundColor: "rgba(0,0,0,0.9)" }}>
+          {file.file_name}
+        </h2>
+        <img src={fileURL}></img>
+      </div>
+    );
+  }
 
   return (
     <div>
+      {error && <div>{error}</div>}
+      {message && <div>{message}</div>}
       <h2>{file.file_name}</h2>
-      <button onClick={downloadFile}>Dowload</button>
-      <img src={url}></img>
+      <button onClick={downloadFile} disabled={!fileURL}>
+        Dowload
+      </button>
+      {fileURL && <iframe src={fileURL}></iframe>}
     </div>
   );
 }
