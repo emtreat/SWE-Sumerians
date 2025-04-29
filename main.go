@@ -14,9 +14,9 @@ import (
 var users_collection *mongo.Collection
 
 type Env struct {
-	users models.UsersModel
-    emails models.EmailModel
-    files models.FileModel
+	users  models.UsersModel
+	emails models.EmailModel
+	files  models.FileModel
 }
 
 func main() {
@@ -27,9 +27,9 @@ func main() {
 	users_collection = db.Database("project_db").Collection("users")
 
 	env := &Env{ //not to be confused with the poorly named ".env" file that is totally unrelated
-		users: models.UsersModel{DB: users_collection},
-        emails: models.EmailModel{DB: users_collection},
-        files: models.FileModel{DB: users_collection},
+		users:  models.UsersModel{DB: users_collection},
+		emails: models.EmailModel{DB: users_collection},
+		files:  models.FileModel{DB: users_collection},
 	}
 
 	app := fiber.New()
@@ -41,18 +41,14 @@ func main() {
 		AllowHeaders: "Origin,Content-Type,Accept", // Allowed headers
 	}))
 
-
 	app.Post("/api/users", env.users.AddUser)
 	app.Delete("/api/users/:id", env.users.DeleteUser)
 	app.Get("/api/users", env.users.GetUsers)
 	app.Get("/api/users/:email", env.emails.GetEmail)
 	app.Post("/api/users/:email/files", env.files.AddFile)
+	app.Get("/api/users/:email/files/:fileId", env.files.GetFile)
 
 	port := os.Getenv("PORT")
 
 	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
-
-
-
-

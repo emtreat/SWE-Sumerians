@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -15,6 +16,7 @@ import (
 //}
 
 type File struct {
+	ID       string `json:"id" bson:"id"`
 	FileName string `json:"file_name" bson:"filename"`
 	FileSize int32  `json:"file_size" bson:"filesize"`
 	FileBlob []byte `json:"file_blob,omitempty" bson:"fileblob,omitempty"` // New field for blob data
@@ -55,6 +57,7 @@ func (m FileModel) AddFile(c *fiber.Ctx) error {
 		}
 
 		newFile := File{
+			ID:       uuid.New().String(),
 			FileName: fileUpload.FileName,
 			FileSize: fileUpload.FileSize,
 			FileBlob: fileUpload.FileBlob,
@@ -91,6 +94,7 @@ func (m FileModel) AddFile(c *fiber.Ctx) error {
 		return c.Status(Created).JSON(fiber.Map{
 			"message": "File added successfully",
 			"file": fiber.Map{
+				"id":        newFile.ID,
 				"file_name": newFile.FileName,
 				"file_size": newFile.FileSize,
 			},
@@ -114,6 +118,7 @@ func (m FileModel) AddFile(c *fiber.Ctx) error {
 	}
 
 	newFile := File{
+		ID:       uuid.New().String(),
 		FileName: file.Filename,
 		FileSize: int32(file.Size),
 		FileBlob: buffer,
@@ -145,6 +150,7 @@ func (m FileModel) AddFile(c *fiber.Ctx) error {
 	return c.Status(Created).JSON(fiber.Map{
 		"message": "File added successfully",
 		"file": fiber.Map{
+			"id":        newFile.ID,
 			"file_name": newFile.FileName,
 			"file_size": newFile.FileSize,
 		},
@@ -180,6 +186,7 @@ func (m FileModel) GetFiles(cx *fiber.Ctx) error {
 	fileInfos := make([]map[string]interface{}, len(user.Files))
 	for i, file := range user.Files {
 		fileInfos[i] = map[string]interface{}{
+			"id":        file.ID,
 			"file_name": file.FileName,
 			"file_size": file.FileSize,
 		}
@@ -193,12 +200,12 @@ func (m FileModel) GetFiles(cx *fiber.Ctx) error {
 // if you want a blob then use get file
 
 func (m FileModel) GetFile(cx *fiber.Ctx) error {
+	fileId := cx.Params("id")
 	email := cx.Params("email")
-	fileName := cx.Params("fileName")
 
-	if email == "" || fileName == "" {
+	if email == "" || fileId == "" {
 		return cx.Status(400).JSON(fiber.Map{
-			"error": "Email and file name parameters are required",
+			"error": "Email,fileName, fileId parameters are required",
 		})
 	}
 
@@ -218,7 +225,7 @@ func (m FileModel) GetFile(cx *fiber.Ctx) error {
 	}
 
 	for _, file := range user.Files {
-		if file.FileName == fileName {
+		if file.ID == fileId {
 			cx.Set("Content-Disposition", "attachment; filename="+file.FileName)
 			// This sets the Content-Disposition header to prompt a download
 			// with the original file name. The browser will show a download dialog
@@ -244,5 +251,46 @@ func (m FileModel) GetFile(cx *fiber.Ctx) error {
 
 	return cx.Status(404).JSON(fiber.Map{
 		"error": "File not found",
+	})
+}
+
+func (m FileModel) DeleteFile(c *fiber.Ctx) error {
+
+	const (
+		BadRequest    int = 400
+		NotFound      int = 404
+		InternalError int = 500
+		OK            int = 200
+	)
+
+	email := c.Params("email")
+	fileId := c.Params("id")
+
+	if email == "" || fileId == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Email and file ID are needed",
+		})
+	}
+
+	filter := bson.M{"email": email}
+	update := bson.M{
+		"$pull": bson.M{"files": bson.M{"id": fileId}},
+	}
+	result, err := m.DB.UpdateOne(context.Background(), filter, update)
+
+	if err != nil {
+		return c.Status(InternalError).JSON(fiber.Map{
+			"error": "Failed to delete file",
+		})
+	}
+
+	if result.MatchedCount == 0 {
+		return c.Status(NotFound).JSON(fiber.Map{
+			"error": "File not found",
+		})
+	}
+
+	return c.Status(OK).JSON(fiber.Map{
+		"message": "File Deleted successfully",
 	})
 }
