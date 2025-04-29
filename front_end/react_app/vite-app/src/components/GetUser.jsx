@@ -1,17 +1,18 @@
 import "../App.css";
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { AddFile } from "../pages/UploadFile";
 import { AddUser } from "./AddUser";
+import { FileDisplay } from "./FileDisplay";
 
 export function GetUsers() {
   const { email } = useParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -33,6 +34,11 @@ export function GetUsers() {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!user) return <div>No user data found</div>;
+
+  function display_file(file) {
+    setSelectedFile(file);
+    console.log("File Selected");
+  }
 
   return (
     <div
@@ -83,6 +89,9 @@ export function GetUsers() {
                 {" "}
                 <button
                   style={{ display: "flex", justifyContent: "space-between" }}
+                  onClick={() => {
+                    display_file(file);
+                  }}
                 >
                   <span>{file.file_name}</span>
                   <span style={{ fontWeight: "bold" }}>
@@ -98,6 +107,7 @@ export function GetUsers() {
           </p>
         )}
       </div>
+      {selectedFile && <FileDisplay file={selectedFile} />}
     </div>
   );
 }

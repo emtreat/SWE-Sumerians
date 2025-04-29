@@ -35,7 +35,7 @@ export function DropBox({ props_className }) {
         ...previousFiles,
         ...acceptedFiles.map((file) =>
           Object.assign(file, {
-            id: uuidv4(),
+            tempid: uuidv4(),
             preview: URL.createObjectURL(file),
           })
         ),
@@ -43,7 +43,7 @@ export function DropBox({ props_className }) {
     }
   }, []);
   function removefiles(id) {
-    setFiles((files) => files.filter((file) => file.id !== id));
+    setFiles((files) => files.filter((file) => file.tempid !== id));
   }
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
@@ -101,8 +101,9 @@ export function DropBox({ props_className }) {
             timeout: 100000, //time allowed for uploading
           }
         );
-
+        const fileId = response.data.file.id;
         console.log("response recieved", response);
+        console.log("file ID: ", fileId);
       }
 
       setMessage("File uploaded successfully! Redirecting...");
@@ -135,7 +136,7 @@ export function DropBox({ props_className }) {
         {error && <div className="alert error">{error}</div>}
         <ul>
           {files.map((file) => (
-            <li key={file.id}>
+            <li key={file.tempid}>
               <p>File {file.name}</p>
               <img
                 src={file.preview}
