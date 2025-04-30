@@ -20,10 +20,10 @@
     display: flex;
   justify-content: center;  
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  /* bottom: 20px;
+  right: 20px; */
   /* padding: 10px 20px; */
-  background-color: #969696; /* Green background */
+  background-color: #ff771d; 
   color: white;
   border: none;
   border-radius: 4px;
@@ -34,7 +34,7 @@
 }
 
 .floating-button:hover {
-  background-color: #ff771d; /* Darker green on hover */
+  background-color: #b6b6b6; 
 }
 
 html {
@@ -103,8 +103,9 @@ button {
 }
 
 button:hover {
-  background-color: var(--primary-hover-color);
+  background-color: rgb(21, 77, 162);
 }
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
@@ -4576,18 +4577,17 @@ td:last-child {
         right: -2rem;
     }
 }
-.dropboxtext{
-  /* font-size: 50px; */
-  /* color: white; */
-  background-color: gray;
-  border-radius: 0.3rem;
-  box-shadow: var(--shadow);
-  padding: 0.2rem;
-  margin: 3%;
-  list-style:none;
 
-
-}
+.dropboxtext {
+    background-color: rgb(206, 206, 206);
+    border-radius: 0.3rem;
+    box-shadow: var(--shadow);
+    width: 70vw;          /* 70% of viewport width */
+    height: 60vh;         /* 60% of viewport height */
+    list-style: none;
+    box-sizing: border-box; /* Include padding in width/height calculations */
+    position: relative;   /* For proper sizing context */
+  }
 
 .DropBoxClass{
 }

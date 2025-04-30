@@ -1,22 +1,26 @@
 
 import '../App.css'
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { GetUsers } from '../components/GetUser'
-import { AddUser } from '../components/AddUser';
-import { DropBox } from "../components/Dropbox";
-import { GetFiles } from "../components/GetFIles";
+import { GetFiles } from '../components/GetUserData'
+import { AddFile } from '../components/AddFile';
+import { LogoutButton } from '../components/LogoutButton';
 
 export function Home() {
   return(
-    <div >
+    <div style={{ position: 'relative' }}>
+      <div>
+        <Link to={`/`}>
+        <LogoutButton />
+        </Link>
+      </div>
       <div >
-    <GetUsers />
+    <GetFiles />
     </div>
     <div >
       <Link to={`UploadFile/`}>
-            <AddUser>
+            <AddFile>
               Upload New File
-            </AddUser>
+            </AddFile>
           </Link>
     </div>
     </div>

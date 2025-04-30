@@ -1,13 +1,10 @@
 import "../App.css";
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { AddFile } from "../pages/UploadFile";
-import { AddUser } from "./AddUser";
 import { FileDisplay } from "./FileDisplay";
 
-export function GetUsers() {
+export function GetFiles() {
   const { email } = useParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,6 +18,7 @@ export function GetUsers() {
           `http://localhost:8080/api/users/${email}`
         );
         setUser(response.data);
+        console.log(response.data)
       } catch (err) {
         console.log(err);
         setError(err.response?.data?.error || "Failed to fetch user data");
@@ -50,13 +48,16 @@ export function GetUsers() {
       }}
     >
       <div style={{ textAlign: "center", margin: "40px 0" }}>
-        <h1 style={{ fontSize: "2rem", margin: 0 }}>Welcome, {email}</h1>
+        <h1 
+        style={{ fontSize: "2rem", margin: 0 }}>
+        Welcome, {user.firstname} {user.lastname}
+        </h1>
       </div>
 
       {/* Files container */}
       <div
         style={{
-          flex: 1,
+          // flex: 1,
           backgroundColor: "white",
           borderRadius: "8px",
           padding: "20px",

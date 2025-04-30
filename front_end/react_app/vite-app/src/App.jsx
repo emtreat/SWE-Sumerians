@@ -2,8 +2,8 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Home } from './pages/Home'
 import  { Login } from './pages/Login'
-import { Post } from './pages/AddPage';
 import { AddFile } from './pages/UploadFile';
+import { AccountCreation } from "./pages/SignUpPage";
 
 function App() {
 
@@ -11,6 +11,7 @@ function App() {
       <Router>
         <Routes>
         <Route path="/" element={<Login/>} />
+        <Route path="/SignUpPage" element={<AccountCreation/>} />
         <Route path="/Home/:email" element={<Home/>} />
         <Route path="Home/:email/UploadFile" element ={<AddFile/>}/>
       </Routes>
