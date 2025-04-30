@@ -18,9 +18,11 @@ const (
 )
 
 type Users struct {
-	Id    primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Email string             `json:"email" bson:"email"`
-	Files []File             `json:"files" bson:"files"`
+	Id        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	FirstName string             `json:"firstname" bson:"firstname"`
+	LastName  string             `json:"lastname" bson:"lastname"`
+	Email     string             `json:"email" bson:"email"`
+	Files     []File             `json:"files" bson:"files"`
 }
 
 type UsersModel struct {
@@ -74,6 +76,14 @@ func (m UsersModel) AddUser(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(user); err != nil {
 		return err
+	}
+
+	if user.FirstName == "" {
+		return c.Status(LengthRequired).JSON(fiber.Map{"error:": "User must have a valid first name"})
+	}
+
+	if user.LastName == "" {
+		return c.Status(LengthRequired).JSON(fiber.Map{"error:": "User must have a valid last name"})
 	}
 
 	if user.Email == "" {
