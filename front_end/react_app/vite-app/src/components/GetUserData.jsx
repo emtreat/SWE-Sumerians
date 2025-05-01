@@ -1,17 +1,15 @@
 import "../App.css";
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { AddFile } from "../pages/UploadFile";
-import { AddUser } from "./AddUser";
+import { FileDisplay } from "./FileDisplay";
 
-export function GetUsers() {
+export function GetFiles() {
   const { email } = useParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -20,6 +18,7 @@ export function GetUsers() {
           `http://localhost:8080/api/users/${email}`
         );
         setUser(response.data);
+        console.log(response.data)
       } catch (err) {
         console.log(err);
         setError(err.response?.data?.error || "Failed to fetch user data");
@@ -34,6 +33,11 @@ export function GetUsers() {
   if (error) return <div>Error: {error}</div>;
   if (!user) return <div>No user data found</div>;
 
+  function display_file(file) {
+    setSelectedFile(file);
+    console.log("File Selected");
+  }
+
   return (
     <div
       style={{
@@ -44,13 +48,16 @@ export function GetUsers() {
       }}
     >
       <div style={{ textAlign: "center", margin: "40px 0" }}>
-        <h1 style={{ fontSize: "2rem", margin: 0 }}>Welcome, {email}</h1>
+        <h1 
+        style={{ fontSize: "2rem", margin: 0 }}>
+        Welcome, {user.firstname} {user.lastname}
+        </h1>
       </div>
 
       {/* Files container */}
       <div
         style={{
-          flex: 1,
+          // flex: 1,
           backgroundColor: "white",
           borderRadius: "8px",
           padding: "20px",
@@ -83,6 +90,9 @@ export function GetUsers() {
                 {" "}
                 <button
                   style={{ display: "flex", justifyContent: "space-between" }}
+                  onClick={() => {
+                    display_file(file);
+                  }}
                 >
                   <span>{file.file_name}</span>
                   <span style={{ fontWeight: "bold" }}>
@@ -98,6 +108,7 @@ export function GetUsers() {
           </p>
         )}
       </div>
+      {selectedFile && <FileDisplay file={selectedFile} />}
     </div>
   );
 }

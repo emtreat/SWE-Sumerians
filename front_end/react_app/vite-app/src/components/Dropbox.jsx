@@ -35,7 +35,7 @@ export function DropBox({ props_className }) {
         ...previousFiles,
         ...acceptedFiles.map((file) =>
           Object.assign(file, {
-            id: uuidv4(),
+            tempid: uuidv4(),
             preview: URL.createObjectURL(file),
           })
         ),
@@ -43,7 +43,7 @@ export function DropBox({ props_className }) {
     }
   }, []);
   function removefiles(id) {
-    setFiles((files) => files.filter((file) => file.id !== id));
+    setFiles((files) => files.filter((file) => file.tempid !== id));
   }
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
@@ -101,8 +101,9 @@ export function DropBox({ props_className }) {
             timeout: 100000, //time allowed for uploading
           }
         );
-
+        const fileId = response.data.file.id;
         console.log("response recieved", response);
+        console.log("file ID: ", fileId);
       }
 
       setMessage("File uploaded successfully! Redirecting...");
@@ -117,25 +118,40 @@ export function DropBox({ props_className }) {
   // end of send blob section
 
   return (
-    // <div className="DropBoxClass container">
-    <div className="DropBoxClass">
-      <form className="dropboxtext">
+    <div style={{ display: 'flex', flexDirection: 'row' }}>
         <div
           {...getRootProps({
-            className: "container dropboxtext",
           })}
         >
           <input {...getInputProps()} />
-          {isDragActive ? <p> Upload ...</p> : <p> Drag and Drop files</p>}
+          <button style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "row",
+            minHeight: "60vh",
+            minWidth: "75vh",
+            padding: "20px",
+          }}>
+            {isDragActive ? <p> Upload ...</p> : <p> Drag and Drop files</p>}
+          </button>
+          
+          
         </div>
 
-        <h2> Accepted Files</h2>
+        <div className="container">
+        <h2 style={{ marginTop: -320}}> Accepted Files</h2>
         {message && <div className="alert success">{message}</div>}
 
         {error && <div className="alert error">{error}</div>}
-        <ul>
+        <ul style={{
+              listStyle: "none",
+              padding: 0,
+              maxHeight: "400px",
+              overflowY: "auto",
+            }}>
           {files.map((file) => (
-            <li key={file.id}>
+            <li key={file.tempid}>
               <p>File {file.name}</p>
               <img
                 src={file.preview}
@@ -152,33 +168,28 @@ export function DropBox({ props_className }) {
             // console.log(file.name);
           ))}
         </ul>
-      </form>
-      <div className="button-group">
+        </div>
+          <div style={{}}>
+          <div className="button-group">
         <button
           type="submit"
           disabled={loading}
           className="btn primary"
-          onClick={handleSubmit}
-        >
-          {loading ? (
-            <>
-              <span className="spinner"></span> Uploading...
-            </>
-          ) : (
-            "Upload File"
-          )}
+          onClick={handleSubmit}>
+          {loading ? 
+          (<><span className="spinner"></span> Uploading...</>) : 
+              ("Upload File")}
         </button>
 
         <button
-          type="button"
-          onClick={() => {
-            setFiles([]), setError("");
-          }}
-          className="btn secondary"
-        >
-          Cancel
-        </button>
+              type="button"
+              onClick={() => navigate(`/Home/${email}`)}
+              className="btn secondary"
+            >
+              Cancel
+            </button>
       </div>
+          </div>
     </div>
   );
 }
